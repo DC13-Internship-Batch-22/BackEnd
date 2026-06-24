@@ -1,19 +1,20 @@
 package com.batch22bd.BackEnd.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "categories")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Category {
 
     @Id
@@ -26,7 +27,12 @@ public class Category {
     @Column(columnDefinition = "text")
     private String description;
 
+    @CreatedDate
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
-    private Boolean isDeleted;
+
+    private boolean isDeleted;
 }
