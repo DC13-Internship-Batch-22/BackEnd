@@ -10,6 +10,8 @@ import com.batch22bd.BackEnd.Repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -30,5 +32,10 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
         return categoryMapper.toResponse(category);
+    }
+
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> list = categoryRepository.findAll();
+        return list.stream().map(categoryMapper::toResponse).toList();
     }
 }
