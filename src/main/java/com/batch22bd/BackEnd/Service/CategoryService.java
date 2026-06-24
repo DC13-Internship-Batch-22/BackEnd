@@ -4,6 +4,7 @@ import com.batch22bd.BackEnd.DTO.request.CreateCategoryRequest;
 import com.batch22bd.BackEnd.DTO.response.CategoryResponse;
 import com.batch22bd.BackEnd.Entity.Category;
 import com.batch22bd.BackEnd.Exception.ConflictException;
+import com.batch22bd.BackEnd.Exception.ResourceNotFoundException;
 import com.batch22bd.BackEnd.Mapper.CategoryMapper;
 import com.batch22bd.BackEnd.Repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +24,11 @@ public class CategoryService {
         Category categorySaved = categoryRepository.save(category);
 
         return categoryMapper.toResponse(categorySaved);
+    }
+
+    public CategoryResponse getCategoryById(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+        return categoryMapper.toResponse(category);
     }
 }
