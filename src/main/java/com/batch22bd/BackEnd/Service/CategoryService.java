@@ -33,7 +33,7 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
 
         return categoryMapper.toResponse(category);
@@ -53,5 +53,12 @@ public class CategoryService {
         categoryMapper.update(category, request);
 
         return categoryMapper.toResponse(category);
+    }
+
+    @Transactional
+    public void deleteCategoryById(Long id) {
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+        category.setDeleted(true);
     }
 }
