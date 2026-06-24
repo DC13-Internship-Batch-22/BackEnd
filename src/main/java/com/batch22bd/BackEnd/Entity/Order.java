@@ -1,0 +1,42 @@
+package com.batch22bd.BackEnd.Entity;
+
+import com.batch22bd.BackEnd.Enum.OrderStatus;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "orders")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // MANY ORDERS -> ONE TABLE
+    @ManyToOne
+    @JoinColumn(name = "table_id")
+    private TableEntity table;
+
+    // JSONB (PostgreSQL)
+    @Column(columnDefinition = "jsonb")
+    private String items;
+
+    private BigDecimal totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private Boolean isDeleted;
+}
