@@ -32,23 +32,26 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryById(Long id) {
-        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
-
+    public CategoryResponse getActiveCategoryById(Long id) {
+        Category category = getActiveCategory(id);
         return categoryMapper.toResponse(category);
     }
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
-        List<Category> list = categoryRepository.findAll();
+        List<Category> list = categoryRepository.findAllByIsDeletedFalse();
         return list.stream().map(categoryMapper::toResponse).toList();
     }
 
     @Transactional
     public CategoryResponse updateCategoryById(Long id, UpdateCategoryRequest request) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+        Category category = getActiveCategory(id);
+
+        if (request.name() != null
+                && categoryRepository.existsByNameAndIsDeletedFalseAndIdNot(request.name(), id))
+        {
+            throw new ConflictException("Category", "name");
+        }
 
         categoryMapper.update(category, request);
 
@@ -57,8 +60,15 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategoryById(Long id) {
-        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+        Category category = getActiveCategory(id);
         category.setDeleted(true);
+    }
+
+    // Helpers method
+    private Category getActiveCategory(Long id) {
+        return categoryRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Category", "id", String.valueOf(id))
+                );
     }
 }
