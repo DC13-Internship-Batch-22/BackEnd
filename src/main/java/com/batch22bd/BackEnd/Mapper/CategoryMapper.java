@@ -1,6 +1,7 @@
 package com.batch22bd.BackEnd.Mapper;
 
 import com.batch22bd.BackEnd.DTO.request.CreateCategoryRequest;
+import com.batch22bd.BackEnd.DTO.request.UpdateCategoryRequest;
 import com.batch22bd.BackEnd.DTO.response.CategoryResponse;
 import com.batch22bd.BackEnd.Entity.Category;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,15 @@ public class CategoryMapper {
                 category.getCreatedAt(),
                 category.getUpdatedAt()
         );
+    }
+
+    public void update(Category category, UpdateCategoryRequest request) {
+        if (request.name() != null) {
+            category.setName(request.name());
+        }
+        if (request.description() != null) {
+            category.setDescription(request.description());
+        }
     }
 
 }

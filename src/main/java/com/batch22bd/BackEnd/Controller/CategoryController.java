@@ -1,6 +1,7 @@
 package com.batch22bd.BackEnd.Controller;
 
 import com.batch22bd.BackEnd.DTO.request.CreateCategoryRequest;
+import com.batch22bd.BackEnd.DTO.request.UpdateCategoryRequest;
 import com.batch22bd.BackEnd.DTO.response.CategoryResponse;
 import com.batch22bd.BackEnd.Service.CategoryService;
 import jakarta.validation.Valid;
@@ -36,4 +37,14 @@ public class CategoryController {
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CategoryResponse> updateCategoryById(
+            @PathVariable Long id,
+            @RequestBody @Valid UpdateCategoryRequest request)
+    {
+        CategoryResponse response = categoryService.updateCategoryById(id, request);
+        return ResponseEntity.ok(response);
+    }
+
 }

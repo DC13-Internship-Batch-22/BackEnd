@@ -1,6 +1,7 @@
 package com.batch22bd.BackEnd.Service;
 
 import com.batch22bd.BackEnd.DTO.request.CreateCategoryRequest;
+import com.batch22bd.BackEnd.DTO.request.UpdateCategoryRequest;
 import com.batch22bd.BackEnd.DTO.response.CategoryResponse;
 import com.batch22bd.BackEnd.Entity.Category;
 import com.batch22bd.BackEnd.Exception.ConflictException;
@@ -9,6 +10,7 @@ import com.batch22bd.BackEnd.Mapper.CategoryMapper;
 import com.batch22bd.BackEnd.Repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
+    @Transactional
     public CategoryResponse createCategory(CreateCategoryRequest request) {
         if (categoryRepository.existsByNameAndIsDeletedFalse(request.name())) {
             throw new ConflictException("Category", "name");
@@ -28,14 +31,27 @@ public class CategoryService {
         return categoryMapper.toResponse(categorySaved);
     }
 
+    @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+
         return categoryMapper.toResponse(category);
     }
 
+    @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
         List<Category> list = categoryRepository.findAll();
         return list.stream().map(categoryMapper::toResponse).toList();
+    }
+
+    @Transactional
+    public CategoryResponse updateCategoryById(Long id, UpdateCategoryRequest request) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", String.valueOf(id)));
+
+        categoryMapper.update(category, request);
+
+        return categoryMapper.toResponse(category);
     }
 }
