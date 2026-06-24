@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### gitIgnore ##
-.env.local
+application-local.yaml

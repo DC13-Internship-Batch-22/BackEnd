@@ -34,6 +34,7 @@ public class Food {
     @Column(name = "image_url")
     private String imageUrl;
 
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;
