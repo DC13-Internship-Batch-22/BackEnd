@@ -3,6 +3,9 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  profiles:
+    active: local
+
   application:
     name: BackEnd
 
