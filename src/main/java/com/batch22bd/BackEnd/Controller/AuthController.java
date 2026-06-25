@@ -4,6 +4,7 @@ import com.batch22bd.BackEnd.DTO.request.LoginRequest;
 import com.batch22bd.BackEnd.DTO.request.RefreshRequest;
 import com.batch22bd.BackEnd.DTO.response.AuthResponse;
 import com.batch22bd.BackEnd.Entity.User;
+import com.batch22bd.BackEnd.Exception.LoginException;
 import com.batch22bd.BackEnd.Repository.UserRepository;
 import com.batch22bd.BackEnd.Service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +25,10 @@ public class AuthController {
     public AuthResponse login(@RequestBody LoginRequest request) {
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new LoginException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new LoginException("Invalid username or password");
         }
 
         String accessToken = jwtService.generateAccessToken(user.getUsername());

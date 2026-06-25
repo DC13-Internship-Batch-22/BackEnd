@@ -1,5 +1,6 @@
 package com.batch22bd.BackEnd.Config;
 
+import com.batch22bd.BackEnd.Exception.JwtHandle.JwtAuthenticationEntryPoint;
 import com.batch22bd.BackEnd.Service.CustomUserDetailsService;
 import com.batch22bd.BackEnd.Service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +22,7 @@ public class JwtAuthenticationFilter
         extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     private final CustomUserDetailsService userDetailsService;
 
@@ -51,17 +54,21 @@ public class JwtAuthenticationFilter
 
         String username =
                 jwtService.extractUsername(token);
+        UsernamePasswordAuthenticationToken auth;
+        try {
+            UserDetails userDetails =
+                    userDetailsService
+                            .loadUserByUsername(username);
+            auth =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("User name not found");
+        }
 
-        UserDetails userDetails =
-                userDetailsService
-                        .loadUserByUsername(username);
-
-        UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
 
         SecurityContextHolder
                 .getContext()
