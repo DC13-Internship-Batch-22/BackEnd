@@ -105,4 +105,18 @@ public class GlobalExceptionHandle {
                 .body(Map.of("message", exception.getMessage()));
     }
 
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<ErrorResponse> handleLoginException(
+            LoginException e,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = new ErrorResponse(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
 }
