@@ -17,7 +17,7 @@ public class TableMapper {
                 .build();
     }
 
-    public static TableResponse toResponseDTO(TableEntity table) {
+    public static TableResponse toResponse(TableEntity table) {
         return new TableResponse(
                 table.getId(),
                 table.getTableNumber(),
