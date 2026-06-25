@@ -7,6 +7,7 @@ import com.batch22bd.BackEnd.Mapper.TableMapper;
 import com.batch22bd.BackEnd.Repository.TableRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +18,7 @@ public class TableService {
 
     private final TableRepository tableRepository;
 
+    @Transactional(readOnly = true)
     public List<TableResponse> getAllTables() {
         return tableRepository.findAllByIsDeletedFalseOrderByIdAsc()
                 .stream()
@@ -24,10 +26,12 @@ public class TableService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public TableResponse getTableById(Long id) {
         return TableMapper.toResponse(findActiveTable(id));
     }
 
+    @Transactional
     public TableResponse createTable(TableRequest dto) {
         if (tableRepository.existsByTableNumberAndIsDeletedFalse(dto.tableNumber())) {
             throw new IllegalArgumentException("Table number already exists");
@@ -42,6 +46,7 @@ public class TableService {
         return TableMapper.toResponse(tableRepository.save(table));
     }
 
+    @Transactional
     public TableResponse updateTable(Long id, TableRequest dto) {
         TableEntity table = findActiveTable(id);
         if (tableRepository.existsByTableNumberAndIdNotAndIsDeletedFalse(dto.tableNumber(), id)) {
@@ -54,6 +59,7 @@ public class TableService {
         return TableMapper.toResponse(tableRepository.save(table));
     }
 
+    @Transactional
     public void deleteTable(Long id) {
         TableEntity table = findActiveTable(id);
         table.setIsDeleted(true);
