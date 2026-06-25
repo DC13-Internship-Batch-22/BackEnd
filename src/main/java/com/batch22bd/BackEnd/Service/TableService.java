@@ -20,12 +20,12 @@ public class TableService {
     public List<TableResponse> getAllTables() {
         return tableRepository.findAllByIsDeletedFalseOrderByIdAsc()
                 .stream()
-                .map(TableMapper::toResponseDTO)
+                .map(TableMapper::toResponse)
                 .toList();
     }
 
     public TableResponse getTableById(Long id) {
-        return TableMapper.toResponseDTO(findActiveTable(id));
+        return TableMapper.toResponse(findActiveTable(id));
     }
 
     public TableResponse createTable(TableRequest dto) {
@@ -39,7 +39,7 @@ public class TableService {
         table.setUpdatedAt(now);
         table.setIsDeleted(false);
 
-        return TableMapper.toResponseDTO(tableRepository.save(table));
+        return TableMapper.toResponse(tableRepository.save(table));
     }
 
     public TableResponse updateTable(Long id, TableRequest dto) {
@@ -51,7 +51,7 @@ public class TableService {
         TableMapper.updateEntity(table, dto);
         table.setUpdatedAt(LocalDateTime.now());
 
-        return TableMapper.toResponseDTO(tableRepository.save(table));
+        return TableMapper.toResponse(tableRepository.save(table));
     }
 
     public void deleteTable(Long id) {
