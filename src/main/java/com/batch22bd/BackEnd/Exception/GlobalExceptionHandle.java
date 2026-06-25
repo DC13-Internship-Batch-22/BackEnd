@@ -133,12 +133,7 @@ public class GlobalExceptionHandle {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException exception) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", exception.getMessage()));
-    }
+
 
     @ExceptionHandler(LoginException.class)
     public ResponseEntity<ErrorResponse> handleLoginException(
