@@ -14,6 +14,9 @@ import com.batch22bd.BackEnd.Repository.OrderRepository;
 import com.batch22bd.BackEnd.Repository.TableRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -63,11 +66,13 @@ public class OrderService {
         return order.getId();
     }
 
-    public List<OrderSummaryResponse> getOrders() {
-        return orderRepository.findByIsDeletedFalse()
-                .stream()
-                .map(orderMapper::toSummaryResponse)
-                .toList();
+    public Page<OrderSummaryResponse> getOrders(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return orderRepository
+                .findByIsDeletedFalse(pageable)
+                .map(orderMapper::toSummaryResponse);
     }
 
     public OrderDetailResponse getOrder(Long id) {

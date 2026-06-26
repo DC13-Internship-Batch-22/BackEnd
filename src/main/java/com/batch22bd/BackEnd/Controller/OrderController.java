@@ -5,6 +5,7 @@ import com.batch22bd.BackEnd.DTO.response.OrderDetailResponse;
 import com.batch22bd.BackEnd.DTO.response.OrderSummaryResponse;
 import com.batch22bd.BackEnd.Service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +16,14 @@ import java.util.List;
 @RequestMapping("/orders")
 public class OrderController {
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
     @GetMapping("/")
-    public ResponseEntity<List<OrderSummaryResponse>> getOrders() {
-        return ResponseEntity.ok(
-                orderService.getOrders()
-        );
+    public Page<OrderSummaryResponse> getOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return orderService.getOrders(page, size);
     }
 
     @GetMapping("/{id}")
