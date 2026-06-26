@@ -45,7 +45,11 @@ public class OrderService {
 
     private BigDecimal calculateTotal(List<OrderItem> orderItems) {
         return orderItems.stream()
-                .map(OrderItem::getPrice)
+                .map(item -> {
+                    BigDecimal subtotal = item.getPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()));
+                    return subtotal;
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
