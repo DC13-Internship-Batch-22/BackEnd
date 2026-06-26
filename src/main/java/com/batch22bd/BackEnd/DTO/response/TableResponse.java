@@ -9,6 +9,7 @@ public record TableResponse(
         String tableNumber,
         Integer capacity,
         TableStatus status,
+        Long orderId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
