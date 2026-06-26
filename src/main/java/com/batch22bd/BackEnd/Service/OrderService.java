@@ -90,7 +90,7 @@ public class OrderService {
     public PageResponse<OrderSummaryResponse> getOrders(int page, int size, OrderStatus status, String orderId) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> pageOrder = orderRepository.search(orderId, status.toString(), pageable);
+        Page<Order> pageOrder = orderRepository.search(orderId, status.getStatus(), pageable);
 
         Page<OrderSummaryResponse> pageOrderSummary = pageOrder.map(orderMapper::toSummaryResponse);
         return pageMapper.toPageResponse(pageOrderSummary);

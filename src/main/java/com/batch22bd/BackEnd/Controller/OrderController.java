@@ -27,7 +27,7 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status
     ) {
         return ResponseEntity.ok(
-                orderService.getOrders(page, size, orderId, status)
+                orderService.getOrders(page, size, status, orderId)
         );
     }
 
