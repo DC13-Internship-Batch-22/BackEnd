@@ -6,6 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class OrderRequest {
-    List<OrderDto> orderList;
+public class AssignOrderRequest {
+    private long table_id;
+    private List<OrderDto> items;
 }

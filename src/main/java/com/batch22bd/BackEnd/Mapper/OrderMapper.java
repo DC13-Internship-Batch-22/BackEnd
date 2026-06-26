@@ -1,12 +1,17 @@
 package com.batch22bd.BackEnd.Mapper;
 
+import com.batch22bd.BackEnd.DTO.OrderDto;
 import com.batch22bd.BackEnd.DTO.response.OrderDetailResponse;
 import com.batch22bd.BackEnd.DTO.response.OrderSummaryResponse;
+import com.batch22bd.BackEnd.Entity.Food;
 import com.batch22bd.BackEnd.Entity.Order;
+import com.batch22bd.BackEnd.Entity.OrderItem;
+import com.batch22bd.BackEnd.Repository.FoodRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderMapper {
+
     public OrderSummaryResponse toSummaryResponse(Order order) {
         return OrderSummaryResponse.builder()
                     .order_id(order.getId())
@@ -26,5 +31,14 @@ public class OrderMapper {
                     .totalAmount(order.getTotalAmount())
                     .orderStatus(order.getStatus().toString())
                     .build();
+    }
+
+    public OrderItem toOrderItem (Food food, int quantity) {
+        return new OrderItem(
+                food.getId(),
+                food.getName(),
+                quantity,
+                food.getPrice()
+        );
     }
 }
