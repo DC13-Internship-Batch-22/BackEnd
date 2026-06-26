@@ -47,6 +47,10 @@ public class FoodService {
 
     @Transactional(readOnly = true)
     public List<FoodResponse> getAllFoods(Long categoryId) {
+        if (categoryId != null) {
+            getActiveCategory(categoryId);
+        }
+
         List<Food> foods = categoryId == null
                 ? foodRepository.findAllByIsDeletedFalse()
                 : foodRepository.findAllByCategoryIdAndIsDeletedFalse(categoryId);
