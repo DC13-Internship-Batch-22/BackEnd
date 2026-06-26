@@ -9,6 +9,7 @@ public class PageMapper {
     public <T> PageResponse<T> toPageResponse(Page<T> page) {
         return new PageResponse<T>(
                 page.getContent(),
+                page.getNumberOfElements(),
                 page.getTotalPages(),
                 page.getNumber(),
                 page.getSize()
