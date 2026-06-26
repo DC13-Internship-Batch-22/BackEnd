@@ -3,10 +3,13 @@ package com.batch22bd.BackEnd.Config;
 import com.batch22bd.BackEnd.Exception.JwtHandle.JwtAuthenticationEntryPoint;
 import com.batch22bd.BackEnd.Service.CustomUserDetailsService;
 import com.batch22bd.BackEnd.Service.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,36 +46,56 @@ public class JwtAuthenticationFilter
             return;
         }
 
-        String token =
-                authHeader.substring(7);
+        String token = authHeader.substring(7);
 
-        if (!jwtService.isValid(token)) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String username =
-                jwtService.extractUsername(token);
-        UsernamePasswordAuthenticationToken auth;
         try {
+
+            if (!jwtService.isValid(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String username = jwtService.extractUsername(token);
+
             UserDetails userDetails =
-                    userDetailsService
-                            .loadUserByUsername(username);
-            auth =
+                    userDetailsService.loadUserByUsername(username);
+
+            UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
-        } catch (Exception e) {
-            throw new UsernameNotFoundException("User name not found");
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+        } catch (ExpiredJwtException e) {
+
+            jwtAuthenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new InsufficientAuthenticationException("Token expired", e)
+            );
+            return;
+
+        } catch (JwtException e) {
+
+            jwtAuthenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new InsufficientAuthenticationException("Invalid token", e)
+            );
+            return;
+
+        } catch (UsernameNotFoundException e) {
+
+            jwtAuthenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new InsufficientAuthenticationException("User not found", e)
+            );
+            return;
         }
-
-
-        SecurityContextHolder
-                .getContext()
-                .setAuthentication(auth);
 
         filterChain.doFilter(request, response);
     }

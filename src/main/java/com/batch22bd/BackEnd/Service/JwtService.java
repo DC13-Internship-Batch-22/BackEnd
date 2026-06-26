@@ -52,15 +52,12 @@ public class JwtService {
 
     public boolean isValid(String token) {
 
-        try {
-            Jwts.parser()
-                    .verifyWith((SecretKey) getSignKey())
-                    .build()
-                    .parseSignedClaims(token);
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException("user not found");
-        }
+        Jwts.parser()
+                .verifyWith((SecretKey) getSignKey())
+                .build()
+                .parseSignedClaims(token);
+
+        return true;
     }
 
 }
