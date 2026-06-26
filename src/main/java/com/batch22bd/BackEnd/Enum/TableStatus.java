@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 public enum TableStatus {
     AVAILABLE(1,"AVAILABLE"),
     OCCUPIED(2,"OCCUPIED"),
-    RESERVED(1,"RESERVED"),
-    MAINTENANCE(1,"MAINTENANCE");
+    RESERVED(3,"RESERVED"),
+    MAINTENANCE(4,"MAINTENANCE");
 
     private Integer id;
     private String status;
