@@ -18,11 +18,16 @@ public class TableMapper {
     }
 
     public static TableResponse toResponse(TableEntity table) {
+        return toResponse(table, null);
+    }
+
+    public static TableResponse toResponse(TableEntity table, Long orderId) {
         return new TableResponse(
                 table.getId(),
                 table.getTableNumber(),
                 table.getCapacity(),
                 table.getStatus(),
+                orderId,
                 table.getCreatedAt(),
                 table.getUpdatedAt()
         );
