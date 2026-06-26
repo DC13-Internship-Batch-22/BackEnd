@@ -24,12 +24,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         SELECT o
         FROM Order o
         WHERE o.isDeleted = false
-        AND (:orderId IS NULL OR CAST(o.id AS string) LIKE %:orderId%)
-        AND (:table IS NULL OR LOWER(o.table.tableNumber) LIKE LOWER(CONCAT('%', :table, '%')))
+            AND (
+                :orderId IS NULL
+                OR :orderId = ''
+                OR CAST(o.id AS string) LIKE CONCAT('%', :orderId, '%')
+            )
+            AND (
+                :status IS NULL
+                OR :status = ''
+                OR LOWER(CAST(o.status AS string)) LIKE LOWER(CONCAT('%', :status, '%'))
+            )
     """)
     Page<Order> search(
             @Param("orderId") String orderId,
-            @Param("table") String table,
+            @Param("status") String status,
             Pageable pageable
     );
 }

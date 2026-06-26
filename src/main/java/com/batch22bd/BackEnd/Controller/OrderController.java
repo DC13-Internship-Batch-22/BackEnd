@@ -24,10 +24,10 @@ public class OrderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String orderId,
-            @RequestParam(required = false) String table
+            @RequestParam(required = false) OrderStatus status
     ) {
         return ResponseEntity.ok(
-                orderService.getOrders(page, size, orderId, table)
+                orderService.getOrders(page, size, orderId, status)
         );
     }
 
