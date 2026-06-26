@@ -28,6 +28,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -112,12 +115,7 @@ public class OrderService {
 
 
     @Transactional
-    public Long updateOrder (Long orderId, OrderDto orderdto) {
-        Food food = foodRepository.findById(orderdto.getProductId())
-                .orElseThrow(()-> new ResourceNotFoundException(
-                        "Foood",
-                        "foodId",
-                        String.valueOf(orderdto.getProductId())));
+    public Long updateOrder (Long orderId, List<OrderDto> orderdto) {
 
         Order order = orderRepository
                 .findByIdAndIsDeletedFalse(orderId)
@@ -126,27 +124,54 @@ public class OrderService {
                         "OrderId",
                         String.valueOf(orderId)));
 
-        OrderItem existingItem = order.getItems()
+        List<Long> productIds = orderdto.stream()
+                .map(OrderDto::getProductId)
+                .toList();
+
+        List<Food> foods = foodRepository.findAllById(productIds);
+
+        Map<Long, Food> foodMap = foods.stream()
+                .collect(Collectors.toMap(
+                        Food::getId,
+                        Function.identity()
+                ));
+
+        for (OrderDto dto : orderdto) {
+
+            Food food = foodMap.get(dto.getProductId());
+
+            if (food == null) {
+                throw new ResourceNotFoundException(
+                        "Food",
+                        "FoodId",
+                        String.valueOf(dto.getProductId())
+                );
+            }
+
+            OrderItem existingItem = order.getItems()
                     .stream()
-                    .filter(item -> item.getProductId().equals(orderdto.getProductId()))
+                    .filter(item -> item.getProductId().equals(dto.getProductId()))
                     .findFirst()
                     .orElse(null);
 
-        if (existingItem!=null) {
-            existingItem.setQuantity(
-                    existingItem.getQuantity() + orderdto.getQuantity()
-            );
-        } else {
-            order.getItems().add(
-                new OrderItem(
-                    food.getId(),
-                    food.getName(),
-                    orderdto.getQuantity(),
-                    food.getPrice()
-                )
-            );
-        }
+            if (existingItem != null) {
 
+                existingItem.setQuantity(
+                        existingItem.getQuantity() + dto.getQuantity()
+                );
+
+            } else {
+
+                order.getItems().add(
+                        new OrderItem(
+                                food.getId(),
+                                food.getName(),
+                                dto.getQuantity(),
+                                food.getPrice()
+                        )
+                );
+            }
+        }
         order.setTotalAmount(calculateTotal(order.getItems()));
         order.setUpdatedAt(LocalDateTime.now());
 
