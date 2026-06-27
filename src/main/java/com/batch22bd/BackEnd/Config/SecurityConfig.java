@@ -36,6 +36,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "http://localhost:5173",
+                "https://front-end-orpin-nu.vercel.app",
                 "http://127.0.0.1:5173"
         ));
 
