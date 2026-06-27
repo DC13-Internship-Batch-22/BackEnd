@@ -123,7 +123,7 @@ public class TableService {
         return orderIdsByTableId;
     }
 
-    private Long getOrderIdIfOccupied(TableEntity table, Map<Long, Long> activeOrderIdsByTableId) {
+    public Long getOrderIdIfOccupied(TableEntity table, Map<Long, Long> activeOrderIdsByTableId) {
         if (table.getStatus() != TableStatus.OCCUPIED) {
             return null;
         }
