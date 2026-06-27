@@ -43,7 +43,10 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/items")
-    public ResponseEntity<Long> orderDish(@PathVariable Long orderId,@RequestBody List<OrderDto> order) {
+    public ResponseEntity<Long> orderDish(
+            @PathVariable Long orderId,
+            @RequestBody List<OrderDto> order
+    ) {
         return ResponseEntity.ok(
                 orderService.updateOrder(orderId, order)
         );
@@ -78,5 +81,13 @@ public class OrderController {
     ) {
         orderService.updateStatus(id, status);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/override")
+    public ResponseEntity<String> overrideItems (
+            @PathVariable Long id,
+            @RequestBody List<OrderDto> orderDtos
+    ) {
+        return ResponseEntity.ok(orderService.overrideItems(id, orderDtos));
     }
 }

@@ -12,6 +12,7 @@ import com.batch22bd.BackEnd.Entity.TableEntity;
 import com.batch22bd.BackEnd.Enum.OrderStatus;
 import com.batch22bd.BackEnd.Enum.TableStatus;
 import com.batch22bd.BackEnd.Exception.OrderException.DeleteNoItemException;
+import com.batch22bd.BackEnd.Exception.OrderException.InvalidInput;
 import com.batch22bd.BackEnd.Exception.OrderException.NotMatchedTableException;
 import com.batch22bd.BackEnd.Exception.ResourceNotFoundException;
 import com.batch22bd.BackEnd.Mapper.OrderMapper;
@@ -95,6 +96,7 @@ public class OrderService {
                                 .build();
 
         orderRepository.save(order);
+        tableRepository.save(tableEntity);
         return order.getId();
     }
 
@@ -147,6 +149,9 @@ public class OrderService {
 
         for (OrderDto dto : orderdto) {
 
+            if(dto.getQuantity() <= 0)
+                throw new InvalidInput("Quantity must be positive");
+
             Food food = foodMap.get(dto.getProductId());
 
             if (food == null) {
@@ -190,13 +195,21 @@ public class OrderService {
     }
 
     public void deleteOrder(Long orderId) {
-        orderRepository.deleteById(orderId);
+        Order order = orderRepository
+                .findByIdAndIsDeletedFalse(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException(
+                        "Order",
+                        "OrderId",
+                        String.valueOf(orderId)));
+
+        order.setIsDeleted(true);
+        orderRepository.save(order);
     }
 
     public void removeItem (Long orderId, OrderDto orderdto) {
         Food food = foodRepository.findById(orderdto.getProductId())
                 .orElseThrow(()-> new ResourceNotFoundException(
-                        "Foood",
+                        "Food",
                         "foodId",
                         String.valueOf(orderdto.getProductId())));
 
@@ -214,6 +227,8 @@ public class OrderService {
                 .orElse(null);
 
         if (existingItem!=null) {
+            if(existingItem.getQuantity()<orderdto.getQuantity())
+                throw new InvalidInput("Quantity must be positive");
             existingItem.setQuantity(
                     existingItem.getQuantity() - orderdto.getQuantity()
             );
@@ -226,6 +241,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
     public void updateStatus (Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException(
@@ -234,5 +250,36 @@ public class OrderService {
                         String.valueOf(id))
                 );
         order.setStatus(status);
+        orderRepository.save(order);
+    }
+
+    public String overrideItems (Long id, List<OrderDto> orderDtos) {
+
+        Order order = orderRepository
+                .findByIdAndIsDeletedFalse(id)
+                .orElseThrow(()-> new ResourceNotFoundException(
+                        "Order",
+                        "OrderId",
+                        String.valueOf(id)));
+
+        List<OrderItem> orderItems = orderDtos
+                .stream()
+                .map(dto -> {
+                    Food food = foodRepository.findById(dto.getProductId())
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Food",
+                                    "foodId",
+                                    String.valueOf(dto.getProductId())
+                            ));
+
+                    return orderMapper.toOrderItem(food, dto.getQuantity());
+                })
+                .toList();
+
+        order.setItems(orderItems);
+        order.setTotalAmount(calculateTotal(orderItems));
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
+        return "Update Success";
     }
 }
