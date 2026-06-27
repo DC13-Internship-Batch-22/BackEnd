@@ -12,6 +12,8 @@ import com.batch22bd.BackEnd.Entity.TableEntity;
 import com.batch22bd.BackEnd.Enum.OrderStatus;
 import com.batch22bd.BackEnd.Enum.TableStatus;
 import com.batch22bd.BackEnd.Exception.OrderException.DeleteNoItemException;
+import com.batch22bd.BackEnd.Exception.OrderException.InvalidInput;
+import com.batch22bd.BackEnd.Exception.OrderException.NotMatchedTableException;
 import com.batch22bd.BackEnd.Exception.ResourceNotFoundException;
 import com.batch22bd.BackEnd.Mapper.OrderMapper;
 import com.batch22bd.BackEnd.Mapper.PageMapper;
@@ -28,6 +30,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -42,7 +47,11 @@ public class OrderService {
 
     private BigDecimal calculateTotal(List<OrderItem> orderItems) {
         return orderItems.stream()
-                .map(OrderItem::getPrice)
+                .map(item -> {
+                    BigDecimal subtotal = item.getPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()));
+                    return subtotal;
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -70,7 +79,11 @@ public class OrderService {
                 })
                 .toList();
 
-        tableEntity.setStatus(TableStatus.OCCUPIED);
+        if (tableEntity.getStatus().equals(TableStatus.OCCUPIED)) {
+            throw new NotMatchedTableException("Table " + tableEntity.getId() + " is occupied");
+        } else {
+            tableEntity.setStatus(TableStatus.OCCUPIED);
+        }
 
         Order order = Order.builder()
                                 .table(tableEntity)
@@ -83,6 +96,7 @@ public class OrderService {
                                 .build();
 
         orderRepository.save(order);
+        tableRepository.save(tableEntity);
         return order.getId();
     }
 
@@ -112,12 +126,7 @@ public class OrderService {
 
 
     @Transactional
-    public Long updateOrder (Long orderId, OrderDto orderdto) {
-        Food food = foodRepository.findById(orderdto.getProductId())
-                .orElseThrow(()-> new ResourceNotFoundException(
-                        "Foood",
-                        "foodId",
-                        String.valueOf(orderdto.getProductId())));
+    public Long updateOrder (Long orderId, List<OrderDto> orderdto) {
 
         Order order = orderRepository
                 .findByIdAndIsDeletedFalse(orderId)
@@ -126,27 +135,57 @@ public class OrderService {
                         "OrderId",
                         String.valueOf(orderId)));
 
-        OrderItem existingItem = order.getItems()
+        List<Long> productIds = orderdto.stream()
+                .map(OrderDto::getProductId)
+                .toList();
+
+        List<Food> foods = foodRepository.findAllById(productIds);
+
+        Map<Long, Food> foodMap = foods.stream()
+                .collect(Collectors.toMap(
+                        Food::getId,
+                        Function.identity()
+                ));
+
+        for (OrderDto dto : orderdto) {
+
+            if(dto.getQuantity() <= 0)
+                throw new InvalidInput("Quantity must be positive");
+
+            Food food = foodMap.get(dto.getProductId());
+
+            if (food == null) {
+                throw new ResourceNotFoundException(
+                        "Food",
+                        "FoodId",
+                        String.valueOf(dto.getProductId())
+                );
+            }
+
+            OrderItem existingItem = order.getItems()
                     .stream()
-                    .filter(item -> item.getProductId().equals(orderdto.getProductId()))
+                    .filter(item -> item.getProductId().equals(dto.getProductId()))
                     .findFirst()
                     .orElse(null);
 
-        if (existingItem!=null) {
-            existingItem.setQuantity(
-                    existingItem.getQuantity() + orderdto.getQuantity()
-            );
-        } else {
-            order.getItems().add(
-                new OrderItem(
-                    food.getId(),
-                    food.getName(),
-                    orderdto.getQuantity(),
-                    food.getPrice()
-                )
-            );
-        }
+            if (existingItem != null) {
 
+                existingItem.setQuantity(
+                        existingItem.getQuantity() + dto.getQuantity()
+                );
+
+            } else {
+
+                order.getItems().add(
+                        new OrderItem(
+                                food.getId(),
+                                food.getName(),
+                                dto.getQuantity(),
+                                food.getPrice()
+                        )
+                );
+            }
+        }
         order.setTotalAmount(calculateTotal(order.getItems()));
         order.setUpdatedAt(LocalDateTime.now());
 
@@ -156,13 +195,21 @@ public class OrderService {
     }
 
     public void deleteOrder(Long orderId) {
-        orderRepository.deleteById(orderId);
+        Order order = orderRepository
+                .findByIdAndIsDeletedFalse(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException(
+                        "Order",
+                        "OrderId",
+                        String.valueOf(orderId)));
+
+        order.setIsDeleted(true);
+        orderRepository.save(order);
     }
 
     public void removeItem (Long orderId, OrderDto orderdto) {
         Food food = foodRepository.findById(orderdto.getProductId())
                 .orElseThrow(()-> new ResourceNotFoundException(
-                        "Foood",
+                        "Food",
                         "foodId",
                         String.valueOf(orderdto.getProductId())));
 
@@ -180,6 +227,8 @@ public class OrderService {
                 .orElse(null);
 
         if (existingItem!=null) {
+            if(existingItem.getQuantity()<orderdto.getQuantity())
+                throw new InvalidInput("Quantity must be positive");
             existingItem.setQuantity(
                     existingItem.getQuantity() - orderdto.getQuantity()
             );
@@ -192,6 +241,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
     public void updateStatus (Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException(
@@ -200,5 +250,36 @@ public class OrderService {
                         String.valueOf(id))
                 );
         order.setStatus(status);
+        orderRepository.save(order);
+    }
+
+    public String overrideItems (Long id, List<OrderDto> orderDtos) {
+
+        Order order = orderRepository
+                .findByIdAndIsDeletedFalse(id)
+                .orElseThrow(()-> new ResourceNotFoundException(
+                        "Order",
+                        "OrderId",
+                        String.valueOf(id)));
+
+        List<OrderItem> orderItems = orderDtos
+                .stream()
+                .map(dto -> {
+                    Food food = foodRepository.findById(dto.getProductId())
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Food",
+                                    "foodId",
+                                    String.valueOf(dto.getProductId())
+                            ));
+
+                    return orderMapper.toOrderItem(food, dto.getQuantity());
+                })
+                .toList();
+
+        order.setItems(orderItems);
+        order.setTotalAmount(calculateTotal(orderItems));
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
+        return "Update Success";
     }
 }

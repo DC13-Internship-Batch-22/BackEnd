@@ -5,12 +5,15 @@ import com.batch22bd.BackEnd.DTO.request.AssignOrderRequest;
 import com.batch22bd.BackEnd.DTO.response.OrderDetailResponse;
 import com.batch22bd.BackEnd.DTO.response.OrderSummaryResponse;
 import com.batch22bd.BackEnd.DTO.response.PageResponse;
+import com.batch22bd.BackEnd.Entity.Order;
 import com.batch22bd.BackEnd.Enum.OrderStatus;
 import com.batch22bd.BackEnd.Service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -40,7 +43,10 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/items")
-    public ResponseEntity<Long> orderDish(@PathVariable Long orderId,@RequestBody OrderDto order) {
+    public ResponseEntity<Long> orderDish(
+            @PathVariable Long orderId,
+            @RequestBody List<OrderDto> order
+    ) {
         return ResponseEntity.ok(
                 orderService.updateOrder(orderId, order)
         );
@@ -63,8 +69,8 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
-        orderService.deleteOrder(orderId);
+    public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
         return ResponseEntity.ok("Delete successfully");
     }
 
@@ -75,5 +81,13 @@ public class OrderController {
     ) {
         orderService.updateStatus(id, status);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/override")
+    public ResponseEntity<String> overrideItems (
+            @PathVariable Long id,
+            @RequestBody List<OrderDto> orderDtos
+    ) {
+        return ResponseEntity.ok(orderService.overrideItems(id, orderDtos));
     }
 }
