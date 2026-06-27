@@ -12,6 +12,7 @@ import com.batch22bd.BackEnd.Entity.TableEntity;
 import com.batch22bd.BackEnd.Enum.OrderStatus;
 import com.batch22bd.BackEnd.Enum.TableStatus;
 import com.batch22bd.BackEnd.Exception.OrderException.DeleteNoItemException;
+import com.batch22bd.BackEnd.Exception.OrderException.NotMatchedTableException;
 import com.batch22bd.BackEnd.Exception.ResourceNotFoundException;
 import com.batch22bd.BackEnd.Mapper.OrderMapper;
 import com.batch22bd.BackEnd.Mapper.PageMapper;
@@ -77,7 +78,11 @@ public class OrderService {
                 })
                 .toList();
 
-        tableEntity.setStatus(TableStatus.OCCUPIED);
+        if (tableEntity.getStatus().equals(TableStatus.OCCUPIED)) {
+            throw new NotMatchedTableException("Table " + tableEntity.getId() + " is occupied");
+        } else {
+            tableEntity.setStatus(TableStatus.OCCUPIED);
+        }
 
         Order order = Order.builder()
                                 .table(tableEntity)
