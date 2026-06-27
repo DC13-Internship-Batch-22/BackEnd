@@ -1,14 +1,17 @@
 package com.batch22bd.BackEnd.DTO.request;
 
 import com.batch22bd.BackEnd.Enum.TableStatus;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 
 public record TableRequest(
         @NotBlank(message = "Table number is required")
-        @Size(max = 10, message = "Table number must not exceed 10 characters")
+        @Size(max = 5, message = "Table number must not exceed 10 characters")
+        @Pattern(
+                regexp = "^[A-Z][0-9]+$",
+                message = "Format must be A001, T0012, B003"
+        )
+        @Schema(example = "A001")
         String tableNumber,
 
         @NotNull(message = "Capacity is required")
