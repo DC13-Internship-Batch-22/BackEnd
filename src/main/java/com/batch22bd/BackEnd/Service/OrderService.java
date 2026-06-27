@@ -22,6 +22,7 @@ import com.batch22bd.BackEnd.Repository.OrderRepository;
 import com.batch22bd.BackEnd.Repository.TableRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -242,15 +243,16 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateStatus (Long id, OrderStatus status) {
+    public void updateStatus (Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException(
                         "Order",
                         "OrderId",
                         String.valueOf(id))
                 );
-        order.setStatus(status);
-        orderRepository.save(order);
+        order.setStatus(OrderStatus.CONFIRMED);
+        TableEntity table = order.getTable();
+        table.setStatus(TableStatus.AVAILABLE);
     }
 
     public String overrideItems (Long id, List<OrderDto> orderDtos) {

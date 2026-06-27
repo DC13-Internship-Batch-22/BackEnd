@@ -8,6 +8,7 @@ import com.batch22bd.BackEnd.DTO.response.PageResponse;
 import com.batch22bd.BackEnd.Entity.Order;
 import com.batch22bd.BackEnd.Enum.OrderStatus;
 import com.batch22bd.BackEnd.Service.OrderService;
+import com.batch22bd.BackEnd.Service.TableService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,6 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-
     @GetMapping()
     public ResponseEntity<PageResponse<OrderSummaryResponse>> getOrders(
             @RequestParam(defaultValue = "0") int page,
@@ -76,10 +76,9 @@ public class OrderController {
 
     @PostMapping("/{id}/status")
     public ResponseEntity<Void> updateStatus(
-            @PathVariable Long id,
-            @RequestBody OrderStatus status
-    ) {
-        orderService.updateStatus(id, status);
+            @PathVariable Long id
+    ){
+        orderService.updateStatus(id);
         return ResponseEntity.noContent().build();
     }
 
