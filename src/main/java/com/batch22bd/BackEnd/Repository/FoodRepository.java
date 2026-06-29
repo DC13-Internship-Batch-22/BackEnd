@@ -16,7 +16,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     Optional<Food> findByIdAndIsDeletedFalse(Long id);
 
-    List<Food> findAllByIsDeletedFalse();
+    List<Food> findAllByIsDeletedFalseOrderByCreatedAtDesc();
 
-    List<Food> findAllByCategoryIdAndIsDeletedFalse(Long categoryId);
+    List<Food> findAllByCategoryIdAndIsDeletedFalseOrderByCreatedAtDesc(Long categoryId);
 }

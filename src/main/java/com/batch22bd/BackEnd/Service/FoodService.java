@@ -52,8 +52,8 @@ public class FoodService {
         }
 
         List<Food> foods = categoryId == null
-                ? foodRepository.findAllByIsDeletedFalse()
-                : foodRepository.findAllByCategoryIdAndIsDeletedFalse(categoryId);
+                ? foodRepository.findAllByIsDeletedFalseOrderByCreatedAtDesc()
+                : foodRepository.findAllByCategoryIdAndIsDeletedFalseOrderByCreatedAtDesc(categoryId);
 
         return foods.stream().map(foodMapper::toResponse).toList();
     }
