@@ -23,13 +23,13 @@ public interface ReportRepository extends JpaRepository<Order, Long> {
                     CROSS JOIN LATERAL jsonb_array_elements(COALESCE(oi.items, '[]'::jsonb)) AS item
                     WHERE oi.created_at >= :start
                       AND oi.created_at < :end
-                      AND oi.status = 'COMPLETED'
+                      AND oi.status = 'CONFIRMED'
                       AND COALESCE(oi.is_deleted, false) = false
                 ), 0) AS "totalItemsSold"
             FROM orders o
             WHERE o.created_at >= :start
               AND o.created_at < :end
-              AND o.status = 'COMPLETED'
+              AND o.status = 'CONFIRMED'
               AND COALESCE(o.is_deleted, false) = false
             """, nativeQuery = true)
     ReportSummaryProjection getSummary(
@@ -60,7 +60,7 @@ public interface ReportRepository extends JpaRepository<Order, Long> {
                 FROM orders o
                 WHERE o.created_at >= :start
                   AND o.created_at < :end
-                  AND o.status = 'COMPLETED'
+                  AND o.status = 'CONFIRMED'
                   AND COALESCE(o.is_deleted, false) = false
                 GROUP BY period_start
             ) result
@@ -88,7 +88,7 @@ public interface ReportRepository extends JpaRepository<Order, Long> {
                 CROSS JOIN LATERAL jsonb_array_elements(COALESCE(o.items, '[]'::jsonb)) AS item
                 WHERE o.created_at >= :start
                   AND o.created_at < :end
-                  AND o.status = 'COMPLETED'
+                  AND o.status = 'CONFIRMED'
                   AND COALESCE(o.is_deleted, false) = false
                 GROUP BY product_id, product_name
             ) result
@@ -110,7 +110,7 @@ public interface ReportRepository extends JpaRepository<Order, Long> {
             WHERE o.created_at >= :start
               AND o.created_at < :end
               AND o.total_amount >= :minAmount
-              AND o.status = 'COMPLETED'
+              AND o.status = 'CONFIRMED'
               AND COALESCE(o.is_deleted, false) = false
             ORDER BY o.total_amount DESC, o.created_at DESC
             LIMIT :limit
@@ -149,7 +149,7 @@ public interface ReportRepository extends JpaRepository<Order, Long> {
             JOIN categories c ON c.id = f.category_id
             WHERE o.created_at >= :start
               AND o.created_at < :end
-              AND o.status = 'COMPLETED'
+              AND o.status = 'CONFIRMED'
               AND COALESCE(o.is_deleted, false) = false
             GROUP BY c.id, c.name
             ORDER BY "revenue" DESC
