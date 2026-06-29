@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public enum OrderStatus {
     PENDING(1,"Pending"),
-    CONFIRMED(2,"Confirmed"),
-    COMPLETED(3,"Completed"),
-    CANCELLED(4,"Cancelled");
+    CONFIRMED(2,"Confirmed");
 
     private Integer id;
     private String status;
