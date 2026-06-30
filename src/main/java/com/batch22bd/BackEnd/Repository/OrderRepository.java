@@ -47,6 +47,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                 OR :status = ''
                 OR LOWER(CAST(o.status AS string)) LIKE LOWER(CONCAT('%', :status, '%'))
             )
+        ORDER BY o.createdAt DESC
     """)
     Page<Order> search(
             @Param("orderId") String orderId,
